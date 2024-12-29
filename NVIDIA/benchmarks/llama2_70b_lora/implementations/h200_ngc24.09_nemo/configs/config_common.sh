@@ -15,7 +15,7 @@
 # limitations under the License.
 
 export WARMUP=True
-export DGXNGPU=8
+export DGXNGPU=4
 export DGXSYSTEM=$(basename $(readlink -f ${BASH_SOURCE[1]}) | sed 's/^config_//' | sed 's/\.sh$//' )
 
 export NCCL_MIN_P2P_NCHANNELS=32;
