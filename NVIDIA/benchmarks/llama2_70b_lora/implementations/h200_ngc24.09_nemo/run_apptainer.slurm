@@ -18,7 +18,6 @@ readonly node_rank="${SLURM_NODEID:-0}"
 readonly local_rank="${LOCAL_RANK:=${SLURM_LOCALID:=${OMPI_COMM_WORLD_LOCAL_RANK:-}}}"
 
 CMD=( 'torchrun' '--nproc_per_node=4' )
-APPTAINER_RUN=("apptainer" "run" "--nv" "--bind" "$DIR/../:/data" "--bind" "$DIR/../model/:/ckpt" "nemo-container.sif")
 
 if [ "${node_rank:-0}" -eq 0 ] && [ "${local_rank:-0}" -eq 0 ]
 then
@@ -27,13 +26,18 @@ then
     echo "STARTING TIMING RUN AT $start_fmt"
 fi
 
-${APPTAINER_RUN[@]} python scripts/download_dataset.py --data_dir /data/gov_report
-${APPTAINER_RUN[@]} python scripts/download_model.py --model_dir /data/model
-${APPTAINER_RUN[@]} python scripts/convert_dataset.py --data_dir /data/gov_report
-${APPTAINER_RUN[@]} python scripts/convert_model.py --input_name_or_path=/data/model --output_path=/data/model/llama2-70b.nemo
-${APPTAINER_RUN[@]} cd /data/model && find . -type f ! -name 'llama2-70b.nemo' -exec rm -f {} + && tar -xvf llama2-70b.nemo
+APPTAINER_RUN=("apptainer" "run" "--nv" "--bind" "$DIR/../:/data" "nemo-container.sif")
+
+# ${APPTAINER_RUN[@]} python scripts/download_dataset.py --data_dir /data/gov_report
+# ${APPTAINER_RUN[@]} python scripts/download_model.py --model_dir /data/model
+# ${APPTAINER_RUN[@]} python scripts/convert_dataset.py --data_dir /data/gov_report
+# ${APPTAINER_RUN[@]} python scripts/convert_model.py --input_name_or_path=/data/model --output_path=/data/model/llama2-70b.nemo
+# ${APPTAINER_RUN[@]} bash -c "cd /data/model && find . -type f ! -name 'llama2-70b.nemo' -exec rm -f {} + && tar -xvf llama2-70b.nemo"
+
 source $DIR/config_DGXH200_1x8x2xtp1pp1cp2.sh
 export HYDRA_FULL_ERROR=1
+APPTAINER_RUN=("apptainer" "run" "--nv" "--bind" "$DIR/../:/data" "--bind" "$DIR/../model/:/ckpt" "nemo-container.sif")
+
 ${APPTAINER_RUN[@]} ${CMD[@]} train.py; ret_code=$?
 
 if [[ $ret_code != 0 ]]; then exit $ret_code; fi
