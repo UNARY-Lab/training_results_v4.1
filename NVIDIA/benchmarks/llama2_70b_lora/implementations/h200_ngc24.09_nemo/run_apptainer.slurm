@@ -16,8 +16,10 @@ cd $DIR || { echo "Directory not found"; exit 1; }
 
 readonly node_rank="${SLURM_NODEID:-0}"
 readonly local_rank="${LOCAL_RANK:=${SLURM_LOCALID:=${OMPI_COMM_WORLD_LOCAL_RANK:-}}}"
-
-CMD=( 'torchrun' '--nproc_per_node=4' )
+export RDZV_HOST=$(hostname)
+export RDZV_PORT=42070
+# export MASTER_PORT="$RDZV_PORT"
+# export MASTER_ADDR="$RDZV_HOST"
 
 if [ "${node_rank:-0}" -eq 0 ] && [ "${local_rank:-0}" -eq 0 ]
 then
@@ -36,9 +38,20 @@ APPTAINER_RUN=("apptainer" "run" "--nv" "--bind" "$DIR/../:/data" "nemo-containe
 
 source $DIR/config_DGXH200_1x8x2xtp1pp1cp2.sh
 export HYDRA_FULL_ERROR=1
-APPTAINER_RUN=("apptainer" "run" "--nv" "--bind" "$DIR/../:/data" "--bind" "$DIR/../model/:/ckpt" "nemo-container.sif")
+nodes=( $( scontrol show hostnames $SLURM_JOB_NODELIST ) )
+nodes_array=($nodes)
+head_node=${nodes_array[0]}
+head_node_ip=$(srun --nodes=1 --ntasks=1 -w "$head_node" hostname -I | awk '{print $1}')
 
-${APPTAINER_RUN[@]} ${CMD[@]} train.py; ret_code=$?
+export LOGLEVEL=INFO
+
+export NCCL_DEBUG=INFO
+export NCCL_SOCKET_IFNAME=hsn
+
+APPTAINER_RUN=("apptainer" "exec" "--nv" "--bind" "$DIR/../:/data" "--bind" "$DIR/../model/:/ckpt" "nemo-container.sif")
+CMD=( 'torchrun' '--nnodes=1' '--nproc_per_node=4' '--rdzv_id' "$RANDOM" '--rdzv_backend' 'c10d' "--rdzv_endpoint=$head_node_ip:29500" )
+# CMD=( 'torchrun' '--nproc_per_node=4' )
+srun ${APPTAINER_RUN[@]} ${CMD[@]} train.py; ret_code=$?
 
 if [[ $ret_code != 0 ]]; then exit $ret_code; fi
 
