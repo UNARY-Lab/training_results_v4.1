@@ -1,12 +1,15 @@
 #!/bin/bash
-#SBATCH --job-name=apptainer_build
-#SBATCH --output=apptainer_build_%j.log
-#SBATCH --error=apptainer_build_%j.err
+#SBATCH --mem=64g
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=4
+#SBATCH --gpus-per-node=4
+#SBATCH --job-name=nemo_test
+#SBATCH --output=apptainer_build_pmi2_master%j.log
+#SBATCH --error=apptainer_build_pmi2_master%j.err
 #SBATCH --time=02:00:00
 #SBATCH --partition=ghx4
 #SBATCH --account=bcrc-dtai-gh
-#SBATCH --gpus-per-node=4
-#SBATCH --cpus-per-gpu=36
 
 set -ex
 
@@ -16,8 +19,8 @@ cd $DIR || { echo "Directory not found"; exit 1; }
 
 readonly node_rank="${SLURM_NODEID:-0}"
 readonly local_rank="${LOCAL_RANK:=${SLURM_LOCALID:=${OMPI_COMM_WORLD_LOCAL_RANK:-}}}"
-export RDZV_HOST=$(hostname)
-export RDZV_PORT=42070
+# export RDZV_HOST=$(hostname)
+# export RDZV_PORT=42070
 # export MASTER_PORT="$RDZV_PORT"
 # export MASTER_ADDR="$RDZV_HOST"
 
@@ -47,11 +50,14 @@ export LOGLEVEL=INFO
 
 export NCCL_DEBUG=INFO
 export NCCL_SOCKET_IFNAME=hsn
+module load nccl
 
+export APPTAINERENV_MASTER_ADDR="$(scontrol show hostnames "${SLURM_JOB_NODELIST-}" | head -n1)"
+export APPTAINERENV_MASTER_PORT=29521
 APPTAINER_RUN=("apptainer" "exec" "--nv" "--bind" "$DIR/../:/data" "--bind" "$DIR/../model/:/ckpt" "nemo-container.sif")
-CMD=( 'torchrun' '--nnodes=1' '--nproc_per_node=4' '--rdzv_id' "$RANDOM" '--rdzv_backend' 'c10d' "--rdzv_endpoint=$head_node_ip:29500" )
-# CMD=( 'torchrun' '--nproc_per_node=4' )
-srun ${APPTAINER_RUN[@]} ${CMD[@]} train.py; ret_code=$?
+# CMD=( 'torchrun' '--nnodes=1' '--nproc_per_node=4' '--rdzv_id' "$RANDOM" '--rdzv_backend' 'c10d' "--rdzv_endpoint=$head_node_ip:29500" )
+CMD=( 'torchrun' '--nproc_per_node=4' )
+srun --mpi=pmi2 ${APPTAINER_RUN[@]} ${CMD[@]} train.py; ret_code=$?
 
 if [[ $ret_code != 0 ]]; then exit $ret_code; fi
 

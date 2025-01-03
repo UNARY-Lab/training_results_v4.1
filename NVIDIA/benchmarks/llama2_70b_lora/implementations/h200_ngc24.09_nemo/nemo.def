@@ -1,5 +1,6 @@
-Bootstrap: docker
-From: nvcr.io/nvidia/pytorch:24.09-py3
+# From: nvcr.io/nvidia/pytorch:24.09-py3
+Bootstrap: localimage
+From: /sw/user/NGC_containers/builds/pytorch_24.09-py3-nccl-compat.sif
 
 %environment
     export WORKDIR=/workspace/ft-llm
