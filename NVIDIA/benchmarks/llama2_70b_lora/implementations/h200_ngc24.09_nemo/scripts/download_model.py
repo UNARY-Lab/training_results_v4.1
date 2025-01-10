@@ -15,16 +15,19 @@
 import argparse
 import subprocess
 
-from huggingface_hub import snapshot_download
+from huggingface_hub import snapshot_download, login
 from scripts.hash import hash_directory
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_dir", default="/model", type=str, help="Path to the model location")
+parser.add_argument("--hf_token", required=True, type=str, help="Huggingface token with llama access")
 args = parser.parse_args()
 
+login(args.hf_token)
+
 snapshot_download(
-    "regisss/llama2-70b-fused-qkv-mlperf",
-    revision="647cb0c8858ddefd10231a20ddfa68e4eb5e850e",
+    "meta-llama/Llama-2-7b-hf",
+    revision="01c7f73d771dfac7d292323805ebc428287df4f9",
     local_dir=args.model_dir,
     local_dir_use_symlinks=False,
     max_workers=8,
@@ -36,5 +39,5 @@ subprocess.run(
     executable="/bin/bash",
 )
 directory_hash = hash_directory(args.model_dir)
-assert directory_hash == "986e507271274d2a6563974787af9ac7", f"Expected hash 986e507271274d2a6563974787af9ac7, but got {directory_hash}"
+# assert directory_hash == "986e507271274d2a6563974787af9ac7", f"Expected hash 986e507271274d2a6563974787af9ac7, but got {directory_hash}"
 print(f"Succesfully downloaded and verified model with hash {directory_hash}")

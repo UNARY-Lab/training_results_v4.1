@@ -4,9 +4,9 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-node=4
-#SBATCH --job-name=nemo_test
-#SBATCH --output=apptainer_build_pmi2_master%j.log
-#SBATCH --error=apptainer_build_pmi2_master%j.err
+#SBATCH --job-name=nemo_apptainer_test
+#SBATCH --output=apptainer_run%j.out
+##SBATCH --error=apptainer_run%j.err
 #SBATCH --time=02:00:00
 #SBATCH --partition=ghx4
 #SBATCH --account=bcrc-dtai-gh
@@ -57,7 +57,8 @@ export APPTAINERENV_MASTER_PORT=29521
 APPTAINER_RUN=("apptainer" "exec" "--nv" "--bind" "$DIR/../:/data" "--bind" "$DIR/../model/:/ckpt" "nemo-container.sif")
 # CMD=( 'torchrun' '--nnodes=1' '--nproc_per_node=4' '--rdzv_id' "$RANDOM" '--rdzv_backend' 'c10d' "--rdzv_endpoint=$head_node_ip:29500" )
 CMD=( 'torchrun' '--nproc_per_node=4' )
-srun --mpi=pmi2 ${APPTAINER_RUN[@]} ${CMD[@]} train.py; ret_code=$?
+${APPTAINER_RUN[@]} ${CMD[@]} train.py; ret_code=$?
+# srun --mpi=pmi2 ${APPTAINER_RUN[@]} ${CMD[@]} train.py; ret_code=$?
 
 if [[ $ret_code != 0 ]]; then exit $ret_code; fi
 

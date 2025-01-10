@@ -31,7 +31,7 @@ export VBOOST_VALUE=1
 export FP8_ACTIVATION=True 
 export FP8_DPA=0
 export NVTE_FP8_DPA_BWD=1
-export TP_COMM_OVERLAP=1
+export TP_COMM_OVERLAP=0
 export NCCL_MIN_CTAS=32
 export UCX_TLS=self,tcp
 

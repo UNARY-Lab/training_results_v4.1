@@ -1,13 +1,14 @@
-# From: nvcr.io/nvidia/pytorch:24.09-py3
-Bootstrap: localimage
-From: /sw/user/NGC_containers/builds/pytorch_24.09-py3-nccl-compat.sif
+Bootstrap: docker
+From: nvcr.io/nvidia/pytorch:24.09-py3
+# Bootstrap: localimage
+# From: /sw/user/NGC_containers/pytorch_24.09-py3.sif
 
 %environment
     export WORKDIR=/workspace/ft-llm
     export PYTHONPATH="${PYTHONPATH}:/workspace/ft-llm/megatron-lm"
 
 %post
-    apt-get update && apt-get install -y libsndfile1 ffmpeg
+    apt-get update && apt-get install --no-upgrade -y libsndfile1 ffmpeg
     # Set working directory
     export WORKDIR=/workspace/ft-llm
     mkdir -p $WORKDIR
