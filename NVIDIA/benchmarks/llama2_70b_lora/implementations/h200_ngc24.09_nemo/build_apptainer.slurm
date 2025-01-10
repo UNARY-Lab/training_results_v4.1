@@ -13,8 +13,8 @@ DIR=$SLURM_SUBMIT_DIR
 cd $DIR || { echo "Directory not found"; exit 1; }
 
 # Build the Apptainer image
+# apptainer build --sandbox --force ../nemo-container-sandbox nemo.def
 apptainer build --force nemo-container.sif nemo.def
-# apptainer build --force nemo-container-new.sif nemo-new.def
 
 # Check if build succeeded
 if [ $? -eq 0 ]; then

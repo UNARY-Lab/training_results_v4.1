@@ -38,6 +38,10 @@ From: nvcr.io/nvidia/pytorch:24.09-py3
     pip install .
     cd megatron/core/datasets
     make
+
+    cd /usr/local/lib/python3.10/dist-packages/nemo/collections/nlp/data/language_modeling/megatron
+    g++ -O3 -Wall -shared -std=c++11 -fPIC -fdiagnostics-color -I/usr/include/python3.10 -I/usr/local/lib/python3.10/dist-packages/pybind11/include helpers.cpp -o helpers.cpython-310-aarch64-linux-gnu.so
+
     cd $WORKDIR
 
     pip install setuptools==69.5.1
