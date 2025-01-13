@@ -2,11 +2,9 @@
 #SBATCH --job-name=apptainer_build
 #SBATCH --output=apptainer_build_%j.out
 ##SBATCH --error=apptainer_build_%j.err
-#SBATCH --time=08:00:00
-#SBATCH --partition=ghx4
-#SBATCH --account=bcrc-dtai-gh
-#SBATCH --gpus-per-node=4
-#SBATCH --cpus-per-gpu=36
+#SBATCH -t 03:00:00
+#SBATCH -p mi2104x
+#SBATCH -q alloc_diwu_05142024_06302025
 
 DIR=$SLURM_SUBMIT_DIR
 # Change to the working directory

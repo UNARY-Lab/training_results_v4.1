@@ -1,5 +1,7 @@
 Bootstrap: docker
-From: nvcr.io/nvidia/pytorch:24.09-py3
+# From: nvcr.io/nvidia/pytorch:24.09-py3
+# From: rocm/pytorch:rocm6.3.1_ubuntu20.04_py3.9_pytorch_release_1.13.1
+From: rocm/pytorch:rocm6.3_ubuntu22.04_py3.10_pytorch_release_2.4.0
 # Bootstrap: localimage
 # From: /sw/user/NGC_containers/pytorch_24.09-py3.sif
 
@@ -19,8 +21,9 @@ From: nvcr.io/nvidia/pytorch:24.09-py3
     git config --global user.email "a"
 
     # Set arguments
-    export MEGATRON_REVISION=24.09-alpha.rc0
-    export NEMO_REVISION=24.09-alpha.rc0-arm
+    # export MEGATRON_REVISION=24.09-alpha.rc0
+    export MEGATRON_REVISION=rocm_dev
+    export NEMO_REVISION=24.09-alpha.rc0-amd
 
     pip install --upgrade pip
 
@@ -30,7 +33,7 @@ From: nvcr.io/nvidia/pytorch:24.09-py3
 
     ## Megatron-core
     pip uninstall -y megatron-core
-    git clone https://github.com/NVIDIA/Megatron-LM
+    git clone https://github.com/ROCm/Megatron-LM
     cd Megatron-LM
     echo MEGATRON_REVISION=${MEGATRON_REVISION}
     git checkout ${MEGATRON_REVISION}
@@ -39,8 +42,8 @@ From: nvcr.io/nvidia/pytorch:24.09-py3
     cd megatron/core/datasets
     make
 
-    cd /usr/local/lib/python3.10/dist-packages/nemo/collections/nlp/data/language_modeling/megatron
-    g++ -O3 -Wall -shared -std=c++11 -fPIC -fdiagnostics-color -I/usr/include/python3.10 -I/usr/local/lib/python3.10/dist-packages/pybind11/include helpers.cpp -o helpers.cpython-310-aarch64-linux-gnu.so
+    # cd /usr/local/lib/python3.10/dist-packages/nemo/collections/nlp/data/language_modeling/megatron
+    # g++ -O3 -Wall -shared -std=c++11 -fPIC -fdiagnostics-color -I/usr/include/python3.10 -I/usr/local/lib/python3.10/dist-packages/pybind11/include helpers.cpp -o helpers.cpython-310-aarch64-linux-gnu.so
 
     cd $WORKDIR
 
